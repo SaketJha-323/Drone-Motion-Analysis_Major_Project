@@ -4,7 +4,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.animation import FuncAnimation
 
 # Load the data
-file_path = 'Data/Processed/Drone_Data.csv'
+file_path = 'Data/Processed/Modified_Drone_Data.csv'
 drone_data = pd.read_csv(file_path)
 
 # Rename columns for convenience
