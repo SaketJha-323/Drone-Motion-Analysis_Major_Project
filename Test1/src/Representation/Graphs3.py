@@ -16,7 +16,7 @@ for node in node_ids:
 # Function to get anomalies in 3D for each node
 def detect_anomalies_3d(df, node):
     coords = df[[f'{node}_pos_X', f'{node}_pos_Y', f'{node}_pos_Z']]
-    iso = IsolationForest(n_estimators=300, contamination='auto', random_state=42)
+    iso = IsolationForest(n_estimators=300, contamination=0.3, random_state=42)
     preds = iso.fit_predict(coords)
     anomalies = np.where(preds == -1)[0]
     return anomalies
