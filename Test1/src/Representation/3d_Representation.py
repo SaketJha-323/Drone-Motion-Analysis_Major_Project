@@ -66,12 +66,12 @@ def update(frame):
         lines[pos].set_data(drone_data[f'{pos}_X'][:frame], drone_data[f'{pos}_Y'][:frame])
         lines[pos].set_3d_properties(drone_data[f'{pos}_Z'][:frame])
         
-        # Update the current point position
-        points[pos].set_data(drone_data[f'{pos}_X'][frame], drone_data[f'{pos}_Y'][frame])
-        points[pos].set_3d_properties(drone_data[f'{pos}_Z'][frame])
+        # Update the current point position (wrap in list to avoid RuntimeError)
+        points[pos].set_data([drone_data[f'{pos}_X'][frame]], [drone_data[f'{pos}_Y'][frame]])
+        points[pos].set_3d_properties([drone_data[f'{pos}_Z'][frame]])
 
 # Create animation
-ani = FuncAnimation(fig, update, frames=len(drone_data), interval=30)  # Adjust interval to match video frame rate (e.g., 30ms for ~30fps)
+ani = FuncAnimation(fig, update, frames=len(drone_data), interval=30)
 
 # Show plot
 plt.show()
