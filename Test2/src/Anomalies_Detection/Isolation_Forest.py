@@ -19,7 +19,6 @@ drone_data.columns = [
     "C_pos_X","C_pos_Y","C_pos_Z",
 ]
 
-
 # convert the position
 #  data into meters
 drone_data["1_pos_X"] /= 1000

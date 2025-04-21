@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 # Load data
 file_path = "data/processed/Modified_Drone_Data.csv"  # Update path if needed
@@ -34,44 +35,61 @@ def calculate_angle(v1, v2):
     dot_product = np.dot(v1, v2)
     norm_v1 = np.linalg.norm(v1)
     norm_v2 = np.linalg.norm(v2)
+    if norm_v1 == 0 or norm_v2 == 0:
+        return 0.0
     cos_theta = dot_product / (norm_v1 * norm_v2)
-    angle = np.arccos(np.clip(cos_theta, -1.0, 1.0))  # Ensure the value is within the valid range for arccos
-    return np.degrees(angle)  # Convert from radians to degrees
+    angle = np.arccos(np.clip(cos_theta, -1.0, 1.0))
+    return np.degrees(angle)
 
-# Initialize arrays for storing rotation angles (in degrees)
+# Store angles
 rotation_angles = {f'Marker {i+1}': [] for i in range(4)}
 
-# Iterate over each frame to calculate the rotation angle for each marker relative to the center
-for i in range(len(drone_data)):
-    center = drone_data[center_position].iloc[i].values  # Position of center C at time i
-    for j, marker_pos in enumerate(marker_positions):
-        marker = drone_data[marker_pos].iloc[i].values  # Position of marker at time i
-        vector_center_to_marker = marker - center
-        vector_x_axis = np.array([1, 0, 0])  # Assuming we compare with the X-axis direction
-        angle = calculate_angle(vector_center_to_marker, vector_x_axis)
-        rotation_angles[f'Marker {j+1}'].append(angle)
+# Visualize using only one frame out of many (e.g., middle one)
+frame_index = len(drone_data) // 2
 
-# Plot Rotation Angles for Each Marker over Time
-plt.figure(figsize=(10, 6))
+fig = plt.figure(figsize=(12, 10))
+ax = fig.add_subplot(111, projection='3d')
+ax.set_title("📍 Drone 3D Rotation Visualization", fontsize=14)
 
-# Plot each marker's rotation angle over time
-for marker in rotation_angles:
-    plt.plot(drone_data['Time'], rotation_angles[marker], label=marker, lw=2)
+# Plot center and markers
+center = drone_data[center_position].iloc[frame_index].values
+ax.scatter(*center, color='black', s=100, label='Center (C)', marker='x')
 
-# Set labels, title, and legend for the plot
-plt.title("Rotation Angles of Each Marker Over Time", fontsize=14)
-plt.xlabel("Time (seconds)", fontsize=12)
-plt.ylabel("Rotation Angle (degrees)", fontsize=12)
-plt.legend(title="Drone Markers", fontsize=10)
-plt.grid(True)
+colors = ['red', 'blue', 'green', 'purple']
 
-# Add a simple horizontal line to indicate 0 degree (no rotation) position
-plt.axhline(0, color='gray', linestyle='--', lw=1)
+for j, marker_pos in enumerate(marker_positions):
+    marker = drone_data[marker_pos].iloc[frame_index].values
+    vector = marker - center
+    angle = calculate_angle(vector, np.array([1, 0, 0]))  # Angle w.r.t X-axis
+    rotation_angles[f'Marker {j+1}'].append(angle)
 
-# Add annotations to make it more kid-friendly
-plt.annotate('Starting position', xy=(0, 0), xytext=(1, 20),
-             arrowprops=dict(facecolor='blue', shrink=0.05),
-             fontsize=12, color='blue')
+    ax.scatter(*marker, color=colors[j], s=80, label=f'Marker {j+1}')
+    ax.quiver(*center, *vector, color=colors[j], length=np.linalg.norm(vector), normalize=True)
 
+    # Annotate rotation degree
+    ax.text(*(marker + 0.02), f"{angle:.1f}°", color=colors[j], fontsize=12)
+
+# Set plot limits and labels
+ax.set_xlim(center[0] - 0.5, center[0] + 0.5)
+ax.set_ylim(center[1] - 0.5, center[1] + 0.5)
+ax.set_zlim(center[2] - 0.5, center[2] + 0.5)
+
+ax.set_xlabel('X Axis (m)')
+ax.set_ylabel('Y Axis (m)')
+ax.set_zlabel('Z Axis (m)')
+ax.legend()
 plt.tight_layout()
 plt.show()
+
+# 📢 Print text output: Average rotation angles over entire flight
+print("\n📈 Average Rotation Angles over All Frames:")
+for j, marker_pos in enumerate(marker_positions):
+    all_angles = []
+    for i in range(len(drone_data)):
+        center = drone_data[center_position].iloc[i].values
+        marker = drone_data[marker_pos].iloc[i].values
+        vector = marker - center
+        angle = calculate_angle(vector, np.array([1, 0, 0]))
+        all_angles.append(angle)
+    mean_angle = np.mean(all_angles)
+    print(f"🔸 Marker {j+1}: {mean_angle:.2f} degrees")
