@@ -1,0 +1,7 @@
+# Ignore the virtual environment folder
+.DMA/
+
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
