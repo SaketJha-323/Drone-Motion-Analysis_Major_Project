@@ -1,5 +1,6 @@
 # Ignore the virtual environment folder
 .DMA/
+.vscode/
 
 __pycache__/
 *.pyc
